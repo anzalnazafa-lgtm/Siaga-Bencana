@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SIGAP Pagentan — Sistem Informasi Geospasial Antisipasi Bencana</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <!-- Leaflet Geosearch (opsional, untuk pencarian alamat) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-geosearch@3.11.0/dist/geosearch.css" />
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <!-- Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <i class="fa-solid fa-mountain-sun"></i>
+      </div>
+      <div>
+        <h1>SIGAP</h1>
+        <p>Pagentan, Banjarnegara</p>
+      </div>
+      <button id="toggleSidebar" class="btn-icon" title="Tutup sidebar">
+        <i class="fa-solid fa-angles-left"></i>
+      </button>
+    </div>
+
+    <div class="sidebar-content">
+
+      <!-- === Status GPS === -->
+      <section class="card">
+        <header class="card-header">
+          <h2><i class="fa-solid fa-location-crosshairs"></i> GPS Real-time</h2>
+          <label class="switch">
+            <input type="checkbox" id="gpsToggle" />
+            <span class="slider"></span>
+          </label>
+        </header>
+        <div class="card-body">
+          <div class="gps-status" id="gpsStatus">GPS belum aktif</div>
+          <div class="gps-coords">
+            <div><span>Lat:</span> <strong id="gpsLat">-</strong></div>
+            <div><span>Lon:</span> <strong id="gpsLon">-</strong></div>
+            <div><span>Akurasi:</span> <strong id="gpsAcc">-</strong></div>
+          </div>
+          <button id="goToMyLocation" class="btn btn-primary btn-sm">
+            <i class="fa-solid fa-crosshairs"></i> Ikuti Posisi Saya
+          </button>
+        </div>
+      </section>
+
+      <!-- === Base Map === -->
+      <section class="card">
+        <header class="card-header">
+          <h2><i class="fa-solid fa-layer-group"></i> Base Map</h2>
+        </header>
+        <div class="card-body">
+          <select id="basemapSelect" class="select">
+            <option value="osm">OpenStreetMap</option>
+            <option value="satellite" selected>Citra Satelit (Esri)</option>
+            <option value="topo">Topografi</option>
+            <option value="dark">Dark Mode</option>
+          </select>
+        </div>
+      </section>
+
+      <!-- === Layer Parameter === -->
+      <section class="card">
+        <header class="card-header">
+          <h2><i class="fa-solid fa-sliders"></i> Layer Parameter</h2>
+        </header>
+        <div class="card-body">
+
+          <!-- TWI -->
+          <div class="layer-item">
+            <label class="layer-label">
+              <input type="checkbox" class="layer-toggle" data-layer="twi" />
+              <span class="layer-name">
+                <i class="fa-solid fa-water" style="color:#3b82f6"></i> TWI
+              </span>
+            </label>
+            <input type="file" accept=".tif,.tiff" data-target="twi" class="file-input" />
+            <div class="opacity-row">
+              <span>Opasitas</span>
+              <input type="range" min="0" max="100" value="70" class="opacity-slider" data-target="twi" />
+            </div>
+          </div>
+
+          <!-- Slope -->
+          <div class="layer-item">
+            <label class="layer-label">
+              <input type="checkbox" class="layer-toggle" data-layer="slope" />
+              <span class="layer-name">
+                <i class="fa-solid fa-mountain" style="color:#f59e0b"></i> Slope (Kemiringan)
+              </span>
+            </label>
+            <input type="file" accept=".tif,.tiff" data-target="slope" class="file-input" />
+            <div class="opacity-row">
+              <span>Opasitas</span>
+              <input type="range" min="0" max="100" value="70" class="opacity-slider" data-target="slope" />
+            </div>
+          </div>
+
+          <!-- Mikrotremor -->
+          <div class="layer-item">
+            <label class="layer-label">
+              <input type="checkbox" class="layer-toggle" data-layer="mikrotremor" />
+              <span class="layer-name">
+                <i class="fa-solid fa-wave-square" style="color:#a855f7"></i> Mikrotremor
+              </span>
+            </label>
+            <input type="file" accept=".tif,.tiff" data-target="mikrotremor" class="file-input" />
+            <div class="opacity-row">
+              <span>Opasitas</span>
+              <input type="range" min="0" max="100" value="70" class="opacity-slider" data-target="mikrotremor" />
+            </div>
+          </div>
+
+          <!-- Magnetik -->
+          <div class="layer-item">
+            <label class="layer-label">
+              <input type="checkbox" class="layer-toggle" data-layer="magnetik" />
+              <span class="layer-name">
+                <i class="fa-solid fa-magnet" style="color:#ef4444"></i> Magnetik
+              </span>
+            </label>
+            <input type="file" accept=".tif,.tiff" data-target="magnetik" class="file-input" />
+            <div class="opacity-row">
+              <span>Opasitas</span>
+              <input type="range" min="0" max="100" value="70" class="opacity-slider" data-target="magnetik" />
+            </div>
+          </div>
+
+          <!-- Curah Hujan -->
+          <div class="layer-item">
+            <label class="layer-label">
+              <input type="checkbox" class="layer-toggle" data-layer="rainfall" checked />
+              <span class="layer-name">
+                <i class="fa-solid fa-cloud-showers-heavy" style="color:#06b6d4"></i> Curah Hujan (Realtime)
+              </span>
+            </label>
+            <div class="hint">
+              <i class="fa-solid fa-circle-info"></i>
+              Diambil otomatis dari Open-Meteo API saat klik lokasi.
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- === Skor Risiko === -->
+      <section class="card">
+        <header class="card-header">
+          <h2><i class="fa-solid fa-triangle-exclamation"></i> Bobot Skor Risiko</h2>
+        </header>
+        <div class="card-body">
+          <div class="weight-row">
+            <label>TWI</label>
+            <input type="number" id="wTwi" value="0.25" step="0.05" min="0" max="1" />
+          </div>
+          <div class="weight-row">
+            <label>Slope</label>
+            <input type="number" id="wSlope" value="0.30" step="0.05" min="0" max="1" />
+          </div>
+          <div class="weight-row">
+            <label>Curah Hujan</label>
+            <input type="number" id="wRain" value="0.25" step="0.05" min="0" max="1" />
+          </div>
+          <div class="weight-row">
+            <label>Mikrotremor</label>
+            <input type="number" id="wMikro" value="0.10" step="0.05" min="0" max="1" />
+          </div>
+          <div class="weight-row">
+            <label>Magnetik</label>
+            <input type="number" id="wMag" value="0.10" step="0.05" min="0" max="1" />
+          </div>
+          <p class="hint"><i class="fa-solid fa-circle-info"></i> Total bobot sebaiknya = 1.0</p>
+        </div>
+      </section>
+
+      <!-- === Legenda === -->
+      <section class="card">
+        <header class="card-header">
+          <h2><i class="fa-solid fa-palette"></i> Legenda Risiko</h2>
+        </header>
+        <div class="card-body">
+          <div class="legend-row"><span class="legend-box" style="background:#16a34a"></span> Rendah (0 – 25)</div>
+          <div class="legend-row"><span class="legend-box" style="background:#eab308"></span> Sedang (26 – 50)</div>
+          <div class="legend-row"><span class="legend-box" style="background:#f97316"></span> Tinggi (51 – 75)</div>
+          <div class="legend-row"><span class="legend-box" style="background:#dc2626"></span> Sangat Tinggi (76 – 100)</div>
+        </div>
+      </section>
+
+      <footer class="sidebar-footer">
+        <p>© 2026 SIGAP Pagentan • Banjarnegara</p>
+        <p style="opacity:.6">Open data: Open-Meteo, Esri, OSM</p>
+      </footer>
+    </div>
+  </aside>
+
+  <!-- ===== MAP ===== -->
+  <main id="mapWrap">
+    <button id="openSidebar" class="btn-icon floating" title="Buka sidebar" style="display:none;">
+      <i class="fa-solid fa-angles-right"></i>
+    </button>
+
+    <!-- Banner judul mengambang -->
+    <div class="map-title-banner">
+      <i class="fa-solid fa-mountain-sun"></i>
+      <div>
+        <strong>Pemetaan Risiko Bencana</strong>
+        <span>Desa Pagentan, Kec. Pagentan, Kab. Banjarnegara</span>
+      </div>
+    </div>
+
+    <div id="map"></div>
+
+    <!-- Panel info hasil klik -->
+    <div id="infoPanel" class="info-panel hidden">
+      <header>
+        <h3><i class="fa-solid fa-map-location-dot"></i> Informasi Lokasi</h3>
+        <button id="closeInfo" class="btn-icon"><i class="fa-solid fa-xmark"></i></button>
+      </header>
+      <div class="info-body" id="infoBody">
+        <p class="muted">Klik di peta untuk melihat detail parameter…</p>
+      </div>
+    </div>
+
+    <!-- Loader -->
+    <div id="loader" class="loader hidden">
+      <div class="spinner"></div>
+      <p id="loaderText">Memuat…</p>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast hidden"></div>
+  </main>
+
+  <!-- ===== Libraries ===== -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-geosearch@3.11.0/dist/bundle.min.js"></script>
+  <!-- georaster + georaster-layer-for-leaflet untuk GeoTIFF -->
+  <script src="https://unpkg.com/georaster@1.6.0/dist/georaster.browser.bundle.min.js"></script>
+  <script src="https://unpkg.com/georaster-layer-for-leaflet@3.10.0/dist/georaster-layer-for-leaflet.min.js"></script>
+  <!-- chroma untuk colormap -->
+  <script src="https://unpkg.com/chroma-js@2.4.2/chroma.min.js"></script>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
